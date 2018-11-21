@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+	<body>
+		<form action="POST">
+        <p>Enter your phone number:
+             <input type="text" size="14" name="phone" id="phone" 
+                onChange="getCustomerInfo();" />
+        </p>
+        <p>你的订单会被发送到:</p>
+        <div id="address"></div>
+        <p>你的订单类型:</p>
+        <p><textarea name="order" rows="6" cols="50" id="order"></textarea></p>
+        <p><input type="submit" value="Order Pizza" id="submit" /></p>
+		</form>
+		<script>
+			//创建支持多种浏览器，具有错误处理能力的XMLHttpRequest
+			var request = false;
+			try{
+				request = new XMLHttpRequest();
+			}catch(trymicrosoft){
+				try{
+					request = new ActiveXObject("Msxml2.XMLHTTP");
+				}catch(othermicrosoft){
+					try{
+						request = new ActiveXObject("Microsoft.XMLHTTP");
+					}catch(failed){
+						request = false;
+					}
+				}
+			}
+			
+			if(!request){
+				alert("Error initializing XMLHttpRequest!");
+			}
+			
+			//获取0就绪状态
+			alert("Ready state is:" + request.readyState);
+			
+			function getCustomerInfo(){
+				var phone = document.getElementById("phone").value;
+				var url = "/cgi-local/lookupCustomer.php?phone=" + escape(phone);
+				request.open("GET",url,true);
+				request.onreadystatechange = updatePage;
+				request.send(null);
+			}
+			
+			function updatePage(){
+				//查看就绪状态
+				alert("updatePage() called with ready state of " + request.readyState);
+				
+				//测试responseText属性
+				alert("updatePage() called with ready state of " + request.readyState + " and a response text of '" + request.responseText + "'");
+				
+				if(request.readyState == 4){
+					//检查有效状态码
+					if(request.status == 200){
+						var response = request.responseText.split("|");
+        				document.getElementById("order").value = response[0];
+      					document.getElementById("address").innerHTML = response[1].replace(/\n/g, "");
+					}else if(request.status == 404){
+						alert("请求URL不存在")
+					}else{
+						alert("Error: status code is" + request.status);
+					}
+					
+				}
+				
+			}
+		</script>
+	</body>
+</html>

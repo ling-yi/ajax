@@ -1,0 +1,87 @@
+<!--
+	第1步：
+	以支持多种浏览器的方式创建XMLHttpRequest对象，以保证无论运行什么样的浏览器，xmlHttp都能引用一个有效的XMLHttpRequest对象
+		1.建立一个变量xmlHttp来引用即将创建的XMLHttpRequest对象。
+		2.尝试在Microsoft浏览器（ie浏览器）中创建该对象
+			1）尝试使用Msxml2.XMLHTTP对象创建它
+			2）如果失败，再尝试Microsoft.XMLHTTP对象。
+		3.如果仍然没有建立xmlHttp,则以非Microsoft的方式创建该对象
+-->
+
+<!--
+	第2步：
+	使用XMLHttpRequest对象发出Ajax请求：
+		1.构造一个能够调用JavaScript方法的页面。js和Ajax在HTML页面之间承担着不可或缺的责任，无法使用js的页面将无法完成Ajax请求。
+		2.发送Ajax请求
+			2.1 从web表单中获取需要的数据
+			2.2 建立需连接的URL
+			2.3 打开到服务器的连接.打开连接要要指定连接方法和要连接的URL。最后一个参数指定连接的类型，如果为true，则将请求一个异步连接
+			2.4 设置服务器相应后要运行的函数。处理服务器回应的函数中应有：
+				2.4.1 检查xmlHttp.readyState的值是否为4，是的话就代表处于就绪状态（这里简略化了，只是处理了一种状态，事实上还有很多其他的状态的）
+				2.4.2 使用xmlHttp.responseText属性获得服务器的响应。因为服务器会把响应填充到xmlHttp.responseText属性中
+			2.5 发送请求
+-->
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+	<body>
+		<!--第2步第1小步：构建一个可以调用js的页面，启用一个Ajax过程-->
+		<form>
+			<p>City: <input type="text" name="city" id="city" size="25" onchange="callServer();"/></p>
+			<p>State: <input type="text" name="state" id="state" size="25" onchange="callServer()"/></p>
+			<p>Zip Code: <input type="text" name="zipCode" id="zipCode" size="5"/></p>
+		</form>
+	</body>
+	<script>
+		//第1步：以支持多种浏览器的方式创建XMLHttpRequest对象
+		var xmlHttp = false;
+		try{
+			xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+		}catch(e){
+			try{
+				xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+			}catch(e2){
+				xmlHttp = false;
+			}
+		}
+		
+		if(!xmlHttp && typeof XMLHttpRequest != 'undefined'){
+			xmlHttp = new XMLHttpRequest();
+		}
+		
+		//第2步第2小步：发送Ajax请求
+		function callServer(){
+			//2.1 从web表单中获取需要的数据
+			var city = document.getElementById("city").value;
+			var state = document.getElementById("state").value;
+			if((city == null)||(city == "")){
+				return;
+			}
+			if((state == null)||(state == "")){
+				return;
+			}
+			
+			//2.2 建立需连接的URL
+			var url = "/scripts/getZipCode.php?city=" + escape(city) + "&state=" + escape(state);
+			
+			//2.3 打开到服务器的连接
+			xmlHttp.open("GET", url, true);
+			
+			//2.4 设置服务器在完成后要运行的函数
+			xmlHttp.onreadystatechange = updatePage;
+			
+			//2.5 发送请求
+			xmlHttp.send(null);
+		}
+		
+		function updatePage(){
+			if(xmlHttp.readyState == 4){
+				var response = xmlHttp.responseText;
+				document.getElementById("zipCode").value = response;
+			}
+		}
+	</script>
+</html>
